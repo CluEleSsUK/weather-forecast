@@ -1,26 +1,49 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from "react"
+import { fetchWeatherByCity, WeatherOutput } from "./Weather"
+import "./App.css"
 
 function App() {
+  const city = "London"
+  const [isLoading, setLoading] = useState(false)
+  const [isError, setError] = useState(false)
+  const [weather, setWeather] = useState<Array<WeatherOutput>>()
+  const [errorMessage, setErrorMessage] = useState<string>()
+
+  const onWeatherLoaded = (weather: Array<WeatherOutput>) => {
+    setLoading(false)
+    setWeather(weather)
+  }
+
+  const onWeatherLoadError = (err: Error) => {
+    setLoading(false)
+    setError(true)
+    setErrorMessage(err.message)
+  }
+
+  useEffect(() => {
+    setLoading(true)
+    fetchWeatherByCity({ city })
+      .then(onWeatherLoaded)
+      .catch(onWeatherLoadError)
+  }, [city])
+
+  if (isError) {
+    return <p>It broke! {errorMessage}</p>
+  }
+
+  if (isLoading) {
+    return <p>Loading...</p>
+  }
+
+  if (!weather || weather.length === 0) {
+    return <p>Weather couldn't be found somehow</p>
+  }
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      temperature today in {city} is {weather[0].temperature} degrees celsius
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
